@@ -1,11 +1,16 @@
 class cache_add_manager {
-    get_object_size(obj) {
-        let memory_size = 0;
-        let data_type_memory_size = {
+
+    constructor() {
+        this.data_type_memory_size = {
             STRING : 2,
             NUMBER : 8,
             BOOLEAN : 4
         };
+    }
+
+    get_object_size(obj) {
+        let memory_size = 0;
+        let data_type_memory_size = this.data_type_memory_size;
         
         if(typeof obj === "number") {
             memory_size += data_type_memory_size.NUMBER;
@@ -36,16 +41,17 @@ class cache_add_manager {
             let cache = caches[key];
             let memory_size = this.get_object_size(value);
             if(memory_size + memory_used > memory_limit) {
-                memory_used = remove_least_used_caches(caches, memory_used, memory_limit);
+                memory_used = this.remove_least_used_caches(caches, memory_used, memory_limit);
             }
             cache['value'] = value;
             cache['memory_size'] = memory_size;
             cache['usage_count'] = 0;
+            cache['time_of_caching'] = new Date().getTime();
             memory_used += memory_size;
-            
-            return memory_used;
+        } else {
+            console.log(key + " is not present");
         }
-        return null;
+        return memory_used;
     };
 
     remove_least_used_caches(caches, memory_used, memory_limit) {
@@ -67,7 +73,19 @@ class cache_add_manager {
 
         return memory_used;
     }
-
 }
+
+process.on('message', (data) => {
+    try {
+        let cache_add_manager_obj = new cache_add_manager();
+        let memory_used = cache_add_manager_obj.add_cache(data.key, data.value, data.caches, data.memory_used, data.memory_limit);
+        process.send({ 
+            memory_used : memory_used
+        });
+    } catch(e) {
+        console.error(e);
+    }
+});
+
 
 module.exports = cache_add_manager;

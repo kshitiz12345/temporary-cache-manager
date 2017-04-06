@@ -2,6 +2,7 @@ var cache_manager = require('./cache_manager')
 
 class cache extends cache_manager {
     constructor(memory_limit) {
+        super();
         this.memory_limit = memory_limit;
         this.memory_used = 0;
         this.caches = {};
@@ -16,14 +17,18 @@ class cache extends cache_manager {
     }
 
     add_cache(key, value) {
-        let callback = (data) => {
-            this.memory_used = data.memory_used;
-        };
-        return super.add_cache(key, value, this.caches, this.memory_used, this.memory_limit, callback);
+        return super.add_cache(key, value, this.caches, this.memory_used, this.memory_limit, (data) => {
+            this.caches = data.caches;
+            console.log("Memory used is " + data.memory_used);
+        });
     }
 
     get_cache(key, callback) {
-        return super.get_cache(key, callback);
+        return super.get_cache(key, this.caches, this.memory_used, this.memory_limit, callback, (data) => {
+            this.memory_used = data.memory_used;
+        });
     }
 
 }
+
+module.exports = cache;

@@ -1,44 +1,38 @@
-let Worker = require('webworker-threads').Worker;
-let cache_add_manager = require('./cache_add_manager');
+const cache_fetch_manager = require('./cache_fetch_manager');
+const child_process = require('child_process');
 
 class cache_manager {
+
+    constructor() {
+
+    };
     
     register_cache(key, expiration_time, backup, caches) {
-        caches.key = {
+        caches[key] = {
             expiration_time : expiration_time,
             backup : backup
         };
+        console.log(key + " added successfully");
         return true;
     };
 
     unregister_cache(key, caches) {
         if(caches[key]) {
             delete caches[key];
+            console.log(key + " removed successfully");
             return true;
+        } else {
+            console.log(key +  " not present");
+            return false;
         }
-        return false;
+        
     };
 
 
     add_cache(key, value, caches, memory_used, memory_limit, callback) {
-        let worker = new Worker(() => {
-            try {
-                this.onmessage = (event) => {
-                    var data = event.data;
-                    let cache_add_manager = new data.cache_add_manager();
-                    let memory_used = cache_add_manager.add_cache(data.key, data.value, data.caches, data.memory_used, data.memory_limit);
-                    let data = {
-                        memory_used : memory_used
-                    }
-                    postMessage(data);
-                }
-            } catch(e) {
-                console.error(e.message);
-            } 
-        });
-
+        const cache_add_manager_process = child_process.fork("./cache_add_manager.js");
+        
         let postData = {
-            cache_add_manager : cache_add_manager,
             key : key,
             value : value,
             caches : caches,
@@ -47,44 +41,17 @@ class cache_manager {
             callback : callback
         };
 
-        worker.onmessage = (event) => {
-            callback(event.data);
-        };
-        worker.postMessage(postData);
+        cache_add_manager_process.send(postData);
+
+        cache_add_manager_process.on('message', (data) => {
+            callback(data);
+        });
     };
 
-    get_cache(key, callback) {
-        let promise = null;
-        let cachedObj = caches[key];
-        let getRejectedPromise = (message) => {
-            return new Promise((resolve, reject) => {
-                reject(message);
-            });
-        };
-        if(cachedObj) {
-            let cachedValue = cachedObj.value;
-            if(cachedValue) {
-                callback(new Promise((resolve, reject) => {
-                                resolve(cachedValue);
-                }));
-            } else {
-                let backup = cachedObj.backup;
-                if(backup) {
-                    backup.then((data)=> {
-                        cachedObj.value = data;
-                        callback(new Promise((resolve, reject) => {
-                                resolve(data);
-                        }));
-                    });
-                } else {
-                    promise = getRejectedPromise('No backup provided');
-                }
-            }
-        } else {
-            promise = getRejectedPromise('No key registered');
-        }
-        return promise;
+    get_cache(key, caches, memory_used, memory_limit, callback, add_cache_callback) {
+        let cache_fetch_manager_obj = new cache_fetch_manager();
+        cache_fetch_manager_obj.get_cache(key, caches, memory_used, memory_limit, callback, add_cache_callback);
     };
 }
 
-exports.module = cache_manager;
+module.exports = cache_manager;
