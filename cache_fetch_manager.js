@@ -1,8 +1,6 @@
-var Worker = require('webworker-threads').Worker;
-
 class cache_fetch_manager {
 
-    get_cache(key, caches, memory_used, memory_limit, callback, add_cache_callback) {
+    get_cache(key, caches, memory_used, memory_limit, memcached_obj,  callback, add_cache_callback) {
         let promise = null;
         let cachedObj = caches[key];
         
@@ -12,21 +10,12 @@ class cache_fetch_manager {
             });
         };
 
-        let manage_backup = (backup) => {
-            backup.then((data)=> {
-                this.add_cache(key, data, caches, memory_used, memory_limit, add_cache_callback);
-                callback(new Promise((resolve, reject) => {
-                        resolve(data);
-                }));
-            });
-        };
-
         if(cachedObj) {
             let cachedValue = cachedObj.value;
             if(cachedValue) {
-                if(cachedObj.expiration_time && (new Date(cachedObj['time_of_caching']) + (cachedValue.expiration_time * 86400000)
+                if(cachedObj.expiration_time && (new Date(cachedObj['time_of_caching']) + (cachedValue.expiration_time * 1000)
                     >= new Date().getTime())) {
-                    manage_backup(backup);
+                    callback(getRejectedPromise('Data expired'));
                 } else {
                     cachedObj["usage_count"]++;
                     callback(new Promise((resolve, reject) => {
@@ -35,12 +24,17 @@ class cache_fetch_manager {
                 }
                 
             } else {
-                let backup = cachedObj.backup;
-                if(backup) {
-                    manage_backup(backup);
-                } else {
-                    callback(getRejectedPromise('No backup provided'));
-                }
+                let memcached_manager = require('./memcached_manager');
+                let memcached_manager_obj = new memcached_manager(memcached_obj);
+                memcached_manager_callback = (promise) => {
+                    promise.then((data)=> {
+                        callback(data.value);
+                        add_cache_callback(key, data.value, {
+                            expiration_time : data.expiration_time
+                        });
+                    });
+                };
+                memcached_manager_obj.get_cache(key, memcached_manager_callback);
             }
         } else {
             callback(getRejectedPromise('No key registered'));

@@ -9,6 +9,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "webworker-threads": "^0.7.11"
+    "memcached": "^2.2.2"
   }
 }
