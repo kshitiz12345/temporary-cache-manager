@@ -39,6 +39,9 @@ class cache_add_manager {
     add_cache(key, value, caches, memory_used, memory_limit) {
         if(caches[key]) {
             let cache = caches[key];
+            if(memory_used > 0 && cache['memory_size']) 
+                memory_used = memory_used - cache['memory_size'];
+                
             let memory_size = this.get_object_size(value);
             if(memory_size + memory_used > memory_limit) {
                 memory_used = this.remove_least_used_caches(caches, memory_used, memory_limit);
@@ -51,7 +54,11 @@ class cache_add_manager {
         } else {
             console.log(key + " is not present");
         }
-        return memory_used;
+
+        return {
+            caches : caches,
+            memory_used : memory_used
+        };
     };
 
     remove_least_used_caches(caches, memory_used, memory_limit) {
@@ -78,10 +85,8 @@ class cache_add_manager {
 process.on('message', (data) => {
     try {
         let cache_add_manager_obj = new cache_add_manager();
-        let memory_used = cache_add_manager_obj.add_cache(data.key, data.value, data.caches, data.memory_used, data.memory_limit);
-        process.send({ 
-            memory_used : memory_used
-        });
+        let return_data = cache_add_manager_obj.add_cache(data.key, data.value, data.caches, data.memory_used, data.memory_limit);
+        process.send(return_data);
     } catch(e) {
         console.error(e);
     }

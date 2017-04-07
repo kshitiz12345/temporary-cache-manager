@@ -13,20 +13,23 @@ class cache extends cache_manager {
     }
 
     unregister_cache(key) {
-        return super.unregister_cache(key, this.caches);
+        this.memory_used = super.unregister_cache(key, this.caches, this.memory_used);
+    }
+
+    add_cache_callback(data) {
+        return (data) => {
+            this.caches = data.caches;
+            this.memory_used = data.memory_used;
+            console.log("Memory used is " + data.memory_used);
+        }
     }
 
     add_cache(key, value) {
-        return super.add_cache(key, value, this.caches, this.memory_used, this.memory_limit, (data) => {
-            this.caches = data.caches;
-            console.log("Memory used is " + data.memory_used);
-        });
+        return super.add_cache(key, value, this.caches, this.memory_used, this.memory_limit, this.add_cache_callback());
     }
 
     get_cache(key, callback) {
-        return super.get_cache(key, this.caches, this.memory_used, this.memory_limit, callback, (data) => {
-            this.memory_used = data.memory_used;
-        });
+        return super.get_cache(key, this.caches, this.memory_used, this.memory_limit, callback, this.add_cache_callback());
     }
 
 }

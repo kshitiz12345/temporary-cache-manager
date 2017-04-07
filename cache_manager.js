@@ -16,14 +16,17 @@ class cache_manager {
         return true;
     };
 
-    unregister_cache(key, caches) {
+    unregister_cache(key, caches, memory_used) {
         if(caches[key]) {
+            let cache = caches[key];
+            if(memory_used > 0)
+                memory_used = memory_used - cache['memory_size'];
             delete caches[key];
             console.log(key + " removed successfully");
-            return true;
+            return memory_used;
         } else {
             console.log(key +  " not present");
-            return false;
+            return memory_used;
         }
         
     };
