@@ -16,7 +16,7 @@ class cache extends cache_manager {
             this.memory_used = data.memory_used;
             console.log("Memory used is " + data.memory_used);
         };
-        return super.add_cache(key, value, params, this.caches, this.memory_used, this.memory_limit, this.memcached_obj, this.add_cache_callback);
+        return super.add_cache(key, value, params, this.caches, this.memory_used, this.memory_limit, this.memcached_obj, add_cache_callback);
     }
 
     get_cache(key, callback) {

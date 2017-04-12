@@ -1,5 +1,7 @@
 const cache_fetch_manager = require('./cache_fetch_manager');
+const memcached_manager = require('./memcached_manager');
 const child_process = require('child_process');
+
 
 class cache_manager {
 
@@ -12,15 +14,17 @@ class cache_manager {
             params : params,
             caches : caches,
             memory_used : memory_used,
-            memory_limit : memory_limit,
-            memcached_obj : memcached_obj,
-            callback : callback
+            memory_limit : memory_limit
         };
 
         cache_add_manager_process.send(postData);
 
         cache_add_manager_process.on('message', (data) => {
             callback(data);
+            if(data.objects_to_be_memcached) {
+                let memcached_manager_obj = new memcached_manager(memcached_obj);
+                memcached_manager_obj.add_cache(data.objects_to_be_memcached);
+            }
         });
     };
 
