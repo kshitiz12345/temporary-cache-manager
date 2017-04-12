@@ -10,16 +10,12 @@ class cache_add_manager {
         };
     }
 
-    get_meta_data_obj_size(expiration_time) {
-        let meta_size = this.data_type_memory_size.NUMBER * 3; // For memory_size, usage_count and time_of_caching
-        if(expiration_time) {
-            meta_size += this.data_type_memory_size.NUMBER;
-        }
-
+    get_meta_data_obj_size() {
+        let meta_size = this.data_type_memory_size.NUMBER * 4; // For memory_size, usage_count, expiration_time and time_of_caching
         return meta_size;
     }
 
-    get_object_size(obj, expiration_time) {
+    get_object_size(obj) {
         let memory_size = 0;
         let data_type_memory_size = this.data_type_memory_size;
         
@@ -45,7 +41,7 @@ class cache_add_manager {
             });
         }   
 
-        memory_size += this.get_meta_data_obj_size(expiration_time);
+        memory_size += this.get_meta_data_obj_size();
         
         return memory_size;
     };
@@ -53,43 +49,43 @@ class cache_add_manager {
     add_cache(key, value, caches, memory) {
         
         let message = "";
+        
         let memory_limit = memory.memory_limit;
         let memory_used = memory.memory_used;
         try {
-            if(!caches[key]) {
-                message = key + " not registered";
-            } else {
-                let cache = caches[key] || {};
-                if(memory_used > 0 && cache['memory_size']) 
-                    memory_used = memory_used - cache['memory_size'];
-                    
-                let memory_size = this.get_object_size(value, caches[key].expiration_time);
-
-                if(memory_size + memory_used > memory_limit) {
-                    var returned_obj = this.remove_least_used_caches(caches, memory_used, memory_limit);
-                    memory_used = returned_obj.memory_used;
-                }
-
-                cache['value'] = value;
-                cache['memory_size'] = memory_size;
-                cache['usage_count'] = 0;
-                cache['time_of_caching'] = new Date().getTime();
+            let cache = {};
+            if(memory_used > 0 && cache['memory_size']) 
+                memory_used = memory_used - cache['memory_size'];
                 
-                memory_used += memory_size;
-                
-                if(!caches[key])
-                    caches[key] = cache;
-                
-                memory.memory_limit = memory_limit;    
-                memory.memory_used = memory_used;
+            let memory_size = this.get_object_size(value);
 
-                message = key + " added successfully";
+            if(memory_size + memory_used > memory_limit) {
+                var returned_obj = this.remove_least_used_caches(caches, memory_used, memory_limit);
+                memory_used = returned_obj.memory_used;
             }
+
+            cache['value'] = value;
+            cache['memory_size'] = memory_size;
+            cache['usage_count'] = 0;
+            cache['time_of_caching'] = new Date().getTime();
+
+            memory_used += memory_size;
+            
+            memory.memory_limit = memory_limit;    
+            memory.memory_used = memory_used;
+            caches[key] = cache;
+
+            message = key + " added successfully";
         } catch(e) {
             message = e;
         }
         
         console.log(message);
+
+        return {
+            caches : caches,
+            memory : memory
+        }
     };
 
     remove_least_used_caches(caches, memory_used, memory_limit) {
@@ -102,7 +98,12 @@ class cache_add_manager {
         keys.forEach((key) => {
             let memory_size = caches[key].memory_size;
             delete caches[key];
-            memory_used = memory_used - memory_size;
+
+            if(memory_size)
+                memory_used = memory_used - memory_size;
+
+            if(memory_used < 0)
+                memory_used = 0;
             
             if(memory_used < memory_limit)
                 return true;
@@ -117,7 +118,8 @@ class cache_add_manager {
 process.on('message', (data) => {
     try {
         let cache_add_manager_obj = new cache_add_manager();
-        cache_add_manager_obj.add_cache(data.key, data.value, data.caches, data.memory);
+        let returned_obj = cache_add_manager_obj.add_cache(data.key, data.value, data.caches, data.memory);
+        process.send(returned_obj);
     } catch(e) {
         console.error(e);
     }

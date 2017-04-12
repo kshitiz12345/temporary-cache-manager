@@ -1,8 +1,8 @@
 class cache_fetch_manager {
 
-    get_cache(key, caches, memory, callback, add_cache_callback) {
+    get_cache(key, caches, caches_meta, memory, callback, add_cache_callback) {
         let promise = null;
-        let cachedObj = caches[key];
+        let cached_meta_obj = caches_meta[key];
         
         let getRejectedPromise = (message) => {
             return new Promise((resolve, reject) => {
@@ -19,21 +19,22 @@ class cache_fetch_manager {
             });
         };
 
-        if(cachedObj) {
-            let cachedValue = cachedObj.value;
-            if(cachedValue) {
-                if(cachedObj.expiration_time && (new Date(cachedObj['time_of_caching']) + (cachedValue.expiration_time * 86400000)
+        if(cached_meta_obj) {
+            let cache = caches[key];
+            if(cache) {
+                let expiration_time = cached_meta_obj.expiration_time;
+                if(expiration_time && (new Date(cache['time_of_caching']) + (expiration_time * 86400000)
                     >= new Date().getTime())) {
                     callback(getRejectedPromise('Key expired'));
                 } else {
-                    cachedObj["usage_count"]++;
+                    cache["usage_count"]++;
                     callback(new Promise((resolve, reject) => {
-                            resolve(cachedValue);
+                            resolve(cache.value);
                     }));
                 }
                 
             } else {
-                let backup = cachedObj.backup;
+                let backup = cached_meta_obj.backup;
                 if(backup) {
                     manage_backup(backup);
                 } else {
