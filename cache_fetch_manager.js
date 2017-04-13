@@ -23,8 +23,8 @@ class cache_fetch_manager {
             let cache = caches[key];
             if(cache) {
                 let expiration_time = cached_meta_obj.expiration_time;
-                if(expiration_time && (new Date(cache['time_of_caching']) + (expiration_time * 86400000)
-                    >= new Date().getTime())) {
+                if(expiration_time && (cache['time_of_caching'] + (expiration_time * 1000)
+                    < (new Date().getTime()))) {
                     callback(getRejectedPromise('Key expired'));
                 } else {
                     cache["usage_count"]++;
