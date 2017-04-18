@@ -1,12 +1,12 @@
 {
   "name": "temporary-cache-manager",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "1.0.1",
+  "description": "Temporary cache manager is in memory caching management system where data is cached in heap memory",
+  "main": "cache.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Kshitiz Agarwal",
   "license": "ISC",
   "dependencies": {}
 }
