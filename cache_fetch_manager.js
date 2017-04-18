@@ -25,7 +25,7 @@ class cache_fetch_manager {
                 let expiration_time = cached_meta_obj.expiration_time;
                 if(expiration_time && (cache['time_of_caching'] + (expiration_time * 1000)
                     < (new Date().getTime()))) {
-                    callback(getRejectedPromise('Key expired'));
+                    callback(getRejectedPromise(key + ' is expired'));
                 } else {
                     cache["usage_count"]++;
                     callback(new Promise((resolve, reject) => {
@@ -38,11 +38,11 @@ class cache_fetch_manager {
                 if(backup) {
                     manage_backup(backup);
                 } else {
-                    callback(getRejectedPromise('No backup provided'));
+                    callback(getRejectedPromise('No backup provided for ' + key));
                 }
             }
         } else {
-            callback(getRejectedPromise('No key registered'));
+            callback(getRejectedPromise(key + ' not registered'));
         }
     };
 }
