@@ -1,5 +1,4 @@
 var cache_manager = require('./cache_manager')
-var Memcached = require('memcached');
 
 class cache extends cache_manager {
     constructor(memory_limit) {

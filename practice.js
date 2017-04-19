@@ -23,17 +23,28 @@ mycache.register_cache('key3', {
     backup : backup('value3')
 })
 
-setTimeout(function(){
     mycache.add_cache('key1', 'value1')
     mycache.add_cache('key2', 'honey agarwal qwdqwd qwdwqdwqdqwdq')
     mycache.add_cache('key3', 'kshtiiz agarwal')
+
+let temp = 0;
+let arr = ['key1', 'key2', 'key3', 'key4'];
+setInterval(function(){
+
     // console.log(mycache.caches)
-mycache.get_cache('key1', (promise)=> {
+mycache.get_cache(arr[temp], (promise)=> {
     promise.then((data) => {
       console.log(data)
-    })
+      console.log(mycache)
+    }).catch((data)=>{
+        console.log(data)
+    }).then(()=>{
+        temp++;
+      if(temp > 3)
+        temp=0;
+    });
 });
-}, 5000)
+}, 1000)
 
 
 

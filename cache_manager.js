@@ -1,5 +1,4 @@
 const cache_fetch_manager = require('./cache_fetch_manager');
-const memcached_manager = require('./memcached_manager');
 const child_process = require('child_process');
 
 

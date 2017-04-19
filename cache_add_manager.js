@@ -1,5 +1,3 @@
-const memcached_manager = require('./memcached_manager');
-
 class cache_add_manager {
 
     constructor() {
