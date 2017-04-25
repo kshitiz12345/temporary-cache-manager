@@ -3,12 +3,9 @@ Temporary cache manager is in memory caching management system where data is cac
 To start using caching , install the module and initialize the manager by creating new instance and passing size limit in bytes as parameter:-
 
 
-var temporary_cache_manager = require('temporary-cache-manager')
-
+var temporary_cache_manager = require('temporary-cache-manager');
 var cache = temporary_cache_manager.cache;
-
 var size_limit = 50;
-
 var mycache = new cache(size_limit);
 
 
