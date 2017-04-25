@@ -4,8 +4,14 @@ To start using caching , install the module and initialize the manager by creati
 
 
 var temporary_cache_manager = require('temporary-cache-manager');
+
+
 var cache = temporary_cache_manager.cache;
+
+
 var size_limit = 50;
+
+
 var mycache = new cache(size_limit);
 
 
