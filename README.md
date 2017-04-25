@@ -4,9 +4,21 @@ To start using caching , install the module and initialize the manager by creati
 
 var temporary_cache_manager = require('temporary-cache-manager')
 var cache = temporary_cache_manager.cache;
-var limit = 50;
-var mycache = new cache(limit);
+var size_limit = 50;
+var mycache = new cache(size_limit);
 
 You need to register every key that you will be using in your project.
 
-mycache.
+--  mycache.register_cache(key, params)
+    Here, we register cache key along with an object as params. Params would contain the following properties:-
+       1) expiration_time: Key expiration time in seconds
+       2) backup: Callback function wich would return a promise containing data fetched from third party source in case its                     not available in cache.
+       
+-- mycache.unregister_cache(key)
+     Here, we unregister the key from cache.
+     
+-- add_cache(key, value)     
+     Here, we add value to key. Key should be registered in cache.
+     
+-- get_cache(key, callback)
+     Here, we get the key value in form of promise which on resolve would pass on the data.
