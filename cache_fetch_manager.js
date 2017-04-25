@@ -11,7 +11,7 @@ class cache_fetch_manager {
         };
 
         let manage_backup = (backup) => {
-            backup.then((data)=> {
+            backup().then((data)=> {
                 add_cache_callback(key, data, caches, memory);
                 callback(new Promise((resolve, reject) => {
                         resolve(data);
